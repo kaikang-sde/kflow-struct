@@ -1,0 +1,29 @@
+# Node modules (in all packages)
+**/node_modules/
+
+# Build outputs
+**/dist/
+**/build/
+**/.turbo/
+
+# Logs
+**/*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDEs / editors
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# pnpm specific
+.pnpm-debug.log
+.pnpm-store/
