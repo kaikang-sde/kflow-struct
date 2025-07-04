@@ -1,13 +1,15 @@
+import './assets/base.css'
 import { xd } from '@kflow-struct/share'
-import './App.css'
+import { Button } from '@mui/material'
+
 
 
 function App() {
 
-
   return (
     <>
-      {xd}
+      <Button variant="contained">Click</Button>
+      <div className="text-red-500 underline">{xd}</div>
     </>
   )
 }
