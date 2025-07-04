@@ -12,6 +12,6 @@ export default defineBuildConfig({
         emitCJS: true, // commonjs 
     },
     externals: [ // exclude external dependencies，they are already included in node_modules in root
-        "react", "react-dom", "antd", "@ant-design/icons"
+        "react", "react-dom", "@mui/material", "@emotion/react", "@emotion/styled"
     ],
 });

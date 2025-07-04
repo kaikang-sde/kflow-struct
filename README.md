@@ -2,7 +2,7 @@
 
 **KFlowStruct** is a low-code visual platform that empowers teams to design, prototype, and manage dynamic workflows with ease — all through an intuitive drag-and-drop interface.
 
-Whether you're building a survey, mapping out user journeys, or organizing modular features, **FlowStruct** helps you turn product ideas into interactive structures **without writing a single line of code**.
+Whether you're building a survey, mapping out user journeys, or organizing modular features, **KFlowStruct** helps you turn product ideas into interactive structures **without writing a single line of code**.
 
 ---
 
