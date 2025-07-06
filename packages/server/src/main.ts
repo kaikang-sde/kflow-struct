@@ -21,6 +21,9 @@ async function bootstrap() {
     // disableErrorMessages: process.env.NODE_ENV === 'production', // Disable detailed error messages in production
   }));
 
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api/v1');
+
   await app.listen(process.env.PORT ?? 3000);
 }
 
