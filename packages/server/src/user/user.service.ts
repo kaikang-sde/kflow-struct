@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { RedisModule } from 'src/redis/redis.module';
+import { RedisModule } from 'src/modules/redis/redis.module';
 import { CaptchaTool } from 'src/utils/captcha-tool';
 import * as dayjs from 'dayjs';
 import { TextMessageTool } from 'src/utils/text-message-tool';
@@ -9,6 +9,10 @@ import { Repository } from 'typeorm';
 import { RandomTool } from 'src/utils/random-tool';
 import { SecretTool } from 'src/utils/secret-tool';
 import { JwtService } from '@nestjs/jwt';
+import { WechatCallbackRequest } from '@kflow-struct/share';
+import { WechatLoginToolModule } from 'src/modules/wechat/wechat-login.module';
+import { createHash } from 'node:crypto'
+
 
 @Injectable()
 export class UserService {
@@ -19,26 +23,25 @@ export class UserService {
     private readonly randomTool: RandomTool,
     private readonly secretTool: SecretTool,
     private readonly jwtService: JwtService,
+    private readonly wechatLoginToolModule: WechatLoginToolModule,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) { }
 
-  /**
-   * Captcha Service
+  /** Captcha Service
    * @param _key Redis key
    * @param type captcha type
    * @returns captcha
    */
   async getCaptcha(_key: string, type: string) {
     const svgCaptcha = await this.captchaTool.captche();
-    this.redisModule.set(`${type}:captcha:${_key}`, svgCaptcha.text, 600);
+    this.redisModule.set(`${type}:captcha:${_key}`, svgCaptcha.text, 60);
     return {
       captcha: svgCaptcha.data,
       text: svgCaptcha.text
     }
   }
 
-  /**
-   * Text Code Service
+  /** Text Code Service
    * @param _key 
    * @param type 
    * @param captcha 
@@ -75,7 +78,7 @@ export class UserService {
     this.redisModule.del(`${type}:captcha:${_key}`);
 
     // set text code in redis 
-    this.redisModule.set(`${type}:code:${phone}`, `${Date.now()}_${code}`, 600);
+    this.redisModule.set(`${type}:code:${phone}`, `${Date.now()}_${code}`, 60);
 
     // if text code is sent successfully, return null, else delete code in redis and throw error
     if (textCode.code === 0) {
@@ -87,8 +90,7 @@ export class UserService {
   }
 
 
-  /**
-   * Register Service
+  /** Register Service
    * @param phone 
    * @param textCode 
    * @param password 
@@ -139,5 +141,85 @@ export class UserService {
     return { data: token, msg: 'Register successfully!' };
   }
 
+  /** Password Login
+   * @param phone 
+   * @param password 
+   */
+  async passwordLogin(phone: string, password: string) {
+    // check user exists
+    const user = await this.userRepository.findOneBy({ phone });
+    if (!user) throw new BadRequestException('User not found!');
 
-} 
+    // check password
+    if (user.password !== this.secretTool.getSecret(password))
+      throw new BadRequestException('Password is incorrect!');
+
+    return {
+      data: this.jwtService.sign({ id: user.id }), // generate token and return token
+      msg: 'Login successfully!'
+    };
+  }
+
+  /** SMS Login
+   * @param phone 
+   * @param textCode 
+   */
+  async smsLogin(phone: string, textCode: string) {
+    // check user exists
+    const user = await this.userRepository.findOneBy({ phone });
+    if (!user) throw new BadRequestException('User not found!');
+
+    // check text code
+    const codeRes = (await this.redisModule.get(`login:code:${phone}`));
+    if (!codeRes) throw new BadRequestException('Please get text code first!');
+
+    // check user passed text code and redis text code are the same
+    const code = (await this.redisModule.get(`login:code:${phone}`))!.split('_')[1];
+    if (code !== textCode)
+      throw new BadRequestException('Text code is incorrect!');
+
+    // delete text code
+    this.redisModule.del(`login:code:${phone}`);
+
+    return {
+      data: this.jwtService.sign({ id: user.id }),
+      msg: 'Login successfully!'
+    };
+  }
+
+  /** Wechat Service Verfication 
+   * @param params 
+   * @returns 
+   */
+  async wechatCallback(params: WechatCallbackRequest) {
+    const { signature, timestamp, nonce, echostr } = params;
+
+    // wechat token
+    const token = this.wechatLoginToolModule.token;
+
+    // based on wechat doc
+    const str = [token, timestamp, nonce].sort().join('')
+    const hash = createHash('sha1')
+    hash.update(str)
+    const encryptedData = hash.digest('hex')
+
+    if (encryptedData === signature) {
+
+      return {
+        data: echostr,
+        msg: 'wechat callback success'
+      }
+    }
+  }
+
+  /** Wechat QR code retrieval
+   * @returns 
+   */
+  async wechatLogin() {
+    // get QR code
+    const { qrCodeUrl, ticket } = await this.wechatLoginToolModule.getQRCode();
+    const redisKey = `wechat:ticket:${ticket}`;
+    this.redisModule.set(redisKey, JSON.stringify({ isScan: 'no' }), 120);
+    return { qrCodeUrl, ticket };
+  }
+}

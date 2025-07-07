@@ -40,3 +40,11 @@ export const jwtConfig: JwtModuleOptions = {
     },
     global: true,
 };
+
+
+export const wechatLoginConfig = {
+  appId: process.env.WECHAT_APP_ID as string,
+  appSecret: process.env.WECHAT_APP_SECRET as string,
+  token: process.env.WECHAT_TOKEN as string,
+  qrUrl: 'https://mp.weixin.qq.com/cgi-bin/showqrcode'
+};

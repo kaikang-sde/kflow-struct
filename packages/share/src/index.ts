@@ -1,3 +1,3 @@
-export const xd = "kai";
+export * from './types';
 
 

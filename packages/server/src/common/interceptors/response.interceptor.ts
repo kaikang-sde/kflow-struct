@@ -4,19 +4,20 @@ import { map } from 'rxjs/operators';
 
 export interface Response<T> {
   code: number;
-  data: T;
-  message?: string;
+  data: T
 }
 
 @Injectable()
 export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<Response<T>> {
     return next.handle().pipe(
-      map(data => ({
-        code: 0,
-        data,
-        message: 'success',
-      })),
+      map((data) => {
+        if (data?.msg === 'wechat callback success') return data.data;
+        return {
+          code: 0,
+          data
+        };
+      })
     );
   }
 }

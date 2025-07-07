@@ -7,9 +7,14 @@ import { CaptchaTool } from 'src/utils/captcha-tool';
 import { SecretTool } from 'src/utils/secret-tool';
 import { TextMessageTool } from 'src/utils/text-message-tool';
 import { RandomTool } from 'src/utils/random-tool';
+import { WechatLoginToolModule } from 'src/modules/wechat/wechat-login.module';
+import { wechatLoginConfig } from 'config';
+
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [
+    TypeOrmModule.forFeature([User]), 
+    WechatLoginToolModule.forRoot(wechatLoginConfig)],
   controllers: [UserController],
   providers: [UserService, CaptchaTool, SecretTool, TextMessageTool, RandomTool],
 })
