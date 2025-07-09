@@ -15,7 +15,12 @@
     "@emotion/styled": "^11.14.1",
     "@kflow-struct/share": "workspace:*",
     "@mui/icons-material": "^7.2.0",
-    "@mui/material": "^7.2.0"
+    "@mui/material": "^7.2.0",
+    "axios": "^1.10.0",
+    "mobx": "^6.13.7",
+    "react-hook-form": "^7.60.0",
+    "react-router-dom": "^7.6.3",
+    "react-use": "^17.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
