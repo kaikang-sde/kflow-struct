@@ -9,13 +9,13 @@ import { TextMessageTool } from 'src/utils/text-message-tool';
 import { RandomTool } from 'src/utils/random-tool';
 import { WechatLoginToolModule } from 'src/modules/wechat/wechat-login.module';
 import { wechatLoginConfig } from 'config';
+import { WechatDataTool } from 'src/utils/wechat-data-tool';
 
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]), 
     WechatLoginToolModule.forRoot(wechatLoginConfig)],
   controllers: [UserController],
-  providers: [UserService, CaptchaTool, SecretTool, TextMessageTool, RandomTool],
+  providers: [UserService, CaptchaTool, SecretTool, TextMessageTool, RandomTool, WechatDataTool],
 })
 export class UserModule {}

@@ -12,6 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import { WechatCallbackRequest } from '@kflow-struct/share';
 import { WechatLoginToolModule } from 'src/modules/wechat/wechat-login.module';
 import { createHash } from 'node:crypto'
+import { WechatDataTool } from 'src/utils/wechat-data-tool';
 
 
 @Injectable()
@@ -23,6 +24,7 @@ export class UserService {
     private readonly randomTool: RandomTool,
     private readonly secretTool: SecretTool,
     private readonly jwtService: JwtService,
+    private readonly wechatDataTool: WechatDataTool,
     private readonly wechatLoginToolModule: WechatLoginToolModule,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) { }
@@ -221,5 +223,94 @@ export class UserService {
     const redisKey = `wechat:ticket:${ticket}`;
     this.redisModule.set(redisKey, JSON.stringify({ isScan: 'no' }), 120);
     return { qrCodeUrl, ticket };
+  }
+
+
+  /** Accept Wechat callback
+   * @param body 
+   * body example：{'<xml><Ticket>gQGc7jwAAAAAAAAAAS5odHRwOi8vd2VpeGluLnFxLmNvbS9xLzAybUhCUVUwOGllNmoxbnNkSXhFMXAAAgRkTWxoAwR4AAAA</Ticket><CreateTime>1751928185</CreateTime><EventKey>123</EventKey><Event>SCAN</Event><ToUserName>gh_bb8539d444db</ToUserName><FromUserName>oiNKG09Op5an8lfgfDxgAJuwoNes</FromUserName><MsgType>event</MsgType></xml>': ''}
+   * @returns 
+   */
+  async wechatMessage(body: any) {
+    interface IObjectData {
+      xml: object
+    }
+    const xmlData = Object.keys(body)[0];  // '<xml><Ticket>gQGc7jwAAAAAAAAAAS5odHRwOi8vd2VpeGluLnFxLmNvbS9xLzAybUhCUVUwOGllNmoxbnNkSXhFMXAAAgRkTWxoAwR4AAAA</Ticket><CreateTime>1751928185</CreateTime><EventKey>123</EventKey><Event>SCAN</Event><ToUserName>gh_bb8539d444db</ToUserName><FromUserName>oiNKG09Op5an8lfgfDxgAJuwoNes</FromUserName><MsgType>event</MsgType></xml>'
+    const objData = await this.wechatDataTool.getObject(xmlData) as IObjectData; // convert xml to object but it has multiple layers and arrays
+    const loginData = this.wechatDataTool.convertToNormalObject(objData.xml); // convert to normal object that has only one layer with string value
+
+    // based on open_id to check if user registered
+    const openIdRes = await this.userRepository.findOneBy({ open_id: loginData.FromUserName });
+
+    // randome avatar and name
+    const userAvatar = this.randomTool.randomAvatar();
+    const userName = this.randomTool.randomName();
+    let userId: number | null = null;
+
+    if (openIdRes) {
+      // user exists
+      userId = openIdRes.id;
+    } else {
+      // user not exists
+      const newUser = await this.userRepository.save({
+        username: userName,
+        avatar: userAvatar,
+        open_id: loginData.FromUserName,
+        phone: '',
+        password: ''
+      });
+      userId = newUser.id;
+    }
+    // token
+    const token = this.jwtService.sign({ id: userId });
+
+    // Redis
+    const redisKey = `wechat:ticket:${loginData.Ticket}`;
+    const existsKey = await this.redisModule.exists(redisKey);
+    if (existsKey) this.redisModule.set(redisKey, JSON.stringify({ isScan: 'yes', token }), 120);
+
+    // return wechat service content
+    let content = ''
+    if (loginData.MsgType === 'event') {
+      if (loginData.Event === 'SCAN')
+        content = 'Welcome back: kflow-struct service!'
+      else if (loginData.Event === 'subscribe')
+        content = 'Welcome to kflow-struct service!'
+
+      const msgStr = `<xml>
+      <ToUserName><![CDATA[${loginData.FromUserName}]]></ToUserName>
+      <FromUserName><![CDATA[${loginData.ToUserName}]]></FromUserName>
+      <CreateTime>${Date.now()}</CreateTime>
+      <MsgType><![CDATA[text]]></MsgType>
+      <Content><![CDATA[${content}]]></Content>
+     </xml>`
+
+
+      return {
+        data: msgStr,
+        msg: 'Login successfully!'
+      };
+    }
+  }
+
+
+  /** Poll Wechat login status
+   * @param param 
+   * @returns 
+   */
+  async wechatPoll(param: { ticket: string }) {
+    const { ticket } = param;
+    const redisKey = `wechat:ticket:${ticket}`;
+    const redisData = JSON.parse((await this.redisModule.get(redisKey)) as string);
+    if (redisData && redisData.isScan === 'yes') {
+      const { token } = redisData;
+      return { 
+        data: token, 
+        msg: 'Login successfully!' 
+      };
+    }
+    return {
+      msg: 'Please scan QR code first!'
+    }
   }
 }

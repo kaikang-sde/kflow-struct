@@ -86,6 +86,26 @@ export class UserController {
   }
 
 
+  /** Invoke when user scan QR code
+   * @param body 
+   * @returns 
+   */
+  @Post('login/wechat/callback')
+  async wechatMessage(@Body()body) {
+    return this.userService.wechatMessage(body);
+  }
+
+  /** Poll Wechat login status
+   * @param body 
+   * @returns 
+   */
+  @Get('login/wechat/poll')
+  async wechatPoll(@Query() param:{ticket: string}) {
+    return this.userService.wechatPoll(param);
+  }
+  
+
+
 
 
 
