@@ -1,16 +1,14 @@
 import './assets/base.css'
-import { xd } from '@kflow-struct/share'
-import { Button } from '@mui/material'
+import LoginRegister from './pages/LoginRegister'
 
 
 
 function App() {
 
   return (
-    <>
-      <Button variant="contained">Click</Button>
-      <div className="text-red-500 underline">{xd}</div>
-    </>
+    <div className="h-full">
+      <LoginRegister />
+    </div>
   )
 }
 

@@ -7,6 +7,9 @@ import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // CORS
+  app.enableCors();
+
   // Apply global response interceptor
   app.useGlobalInterceptors(new ResponseInterceptor());
 
@@ -20,6 +23,9 @@ async function bootstrap() {
     transform: true, // Automatically transform payloads to be objects typed according to their DTO classes
     // disableErrorMessages: process.env.NODE_ENV === 'production', // Disable detailed error messages in production
   }));
+
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api/v1');
 
   await app.listen(process.env.PORT ?? 3000);
 }
