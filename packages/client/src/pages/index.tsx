@@ -10,10 +10,10 @@ function Home() {
     function beforceRouterChange(pathname: string) {
         if (isLogin.get()) {
             // if logged in, when in root or login register pages, need to redirect to edit page
-            ["/", "/loginRegister"].includes(pathname) && nav("/edit");
+            ["/", "/login-register"].includes(pathname) && nav("/edit");
         } else {
             // if not logged in, when in edit page, need to redirect to login register page
-            pathname !== "/loginRegister" && nav("/loginRegister");
+            pathname !== "/login-register" && nav("/login-register");
         }
     }
 

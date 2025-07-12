@@ -16,7 +16,7 @@ export class SmsLoginDto {
   @IsString({ message: 'Phone must be a string!' })
   phone: string;
 
-  @IsNotEmpty({ message: 'Text code cannot be empty!' })
-  @IsString({ message: 'Text code must be a string!' })
-  textCode: string;
+  @IsNotEmpty({ message: 'SMS code cannot be empty!' })
+  @IsString({ message: 'SMS code must be a string!' })
+  smsCode: string;
 }

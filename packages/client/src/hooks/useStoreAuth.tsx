@@ -1,14 +1,27 @@
 import { createStoreAuth } from "../store/auth";
-import { computed } from "mobx";
+import { action, computed } from "mobx";
+import { useNavigate } from "react-router-dom";
 
 // create observable store instance
-const storeAuth = createStoreAuth();
+export const storeAuth = createStoreAuth();
+
+
 
 // expose a custom hook to access login status
 export function useStoreAuth() {
+    const nav = useNavigate();
     // check if logged in, computed property will be re-evaluated when storeAuth.token changes
     const isLogin = computed(() => !!storeAuth.token);
+    
 
-    return { isLogin };
+    // login
+    const login = action(async (token: string) => {
+        storeAuth.token = token;
+        localStorage.setItem("token", token);
+
+        nav("/edit");
+    })
+
+    return { isLogin, login };
 }
 

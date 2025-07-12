@@ -35,8 +35,8 @@ export class UserController {
   }
 
 
-  @Post('text-code')
-  async getTextCode(
+  @Post('sms-code')
+  async getSmsCode(
     @Body() body: TextCodeDto,
     @GetUserIp() ip: string,
     @GetUserHeader('user-agent') userAgent: string
@@ -45,14 +45,14 @@ export class UserController {
     // ip + device info
     const _key = this.secretTool.getSecret(ip + userAgent);
     const code = this.randomTool.randomCode();
-    return await this.userService.getTextCode(_key, type, captcha, phone, code);
+    return await this.userService.getSmsCode(_key, type, captcha, phone, code);
   }
 
 
   @Post('signup')
   async register(@Body() body: RegisterDto) {
-    const { phone, textCode, password, confirmPassword } = body;
-    return this.userService.register(phone, textCode, password, confirmPassword);
+    const { phone, smsCode, password, confirmPassword } = body;
+    return this.userService.register(phone, smsCode, password, confirmPassword);
   }
 
 
@@ -64,8 +64,8 @@ export class UserController {
 
   @Post('login/sms')
   async smsLogin(@Body() body: SmsLoginDto) {
-    const { phone, textCode } = body;
-    return this.userService.smsLogin(phone, textCode);
+    const { phone, smsCode } = body;
+    return this.userService.smsLogin(phone, smsCode);
   }
 
   /** Wechat verification

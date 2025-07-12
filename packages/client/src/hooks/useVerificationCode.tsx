@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { TextField, Button } from "@mui/material";
 import { useFormContext } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import { getCaptcha, getSmsCode } from "../api/user";
+import { toast } from "../utils/toast";
 
 export function useVerificationCode(type: string) {
   const { register, trigger, getValues, formState: { errors } } = useFormContext();
@@ -15,6 +18,52 @@ export function useVerificationCode(type: string) {
   // button disable if startedCountDown is true or phone is empty or phone is not a valid phone number
   const [isDisable, setIsDisable] = useState(false);
 
+  /** React Query useMutation define refresh captcha logic */
+  const { mutate: refreshCaptcha, isPending: loadingWithGetCaptcha } = useMutation({
+    mutationFn: getCaptcha,
+    onSuccess: (result) => {
+      const svgStr = result.data?.captcha;
+      setCaptchaSrc(svgStr)
+    },
+    onError: (err: any) => {
+      toast.error(`${err.response?.data?.message}`);
+    }
+  });
+  // refresh captcha when component mounted
+  useEffect(() => {
+    refreshCaptcha({ type });
+  }, [refreshCaptcha]);
+
+
+  /**
+   * React Query useMutation define send sms code logic
+   */
+  const { mutate: execSendSmsCode, isPending: loadingWithSendSmsCode } = useMutation({
+    mutationFn: getSmsCode,
+    onSuccess: () => {
+      setStartedCountDown(true);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+
+      if (typeof msg === "string") {
+        if (msg.includes("Captcha is incorrect")) {
+          toast.error(`${msg}`);
+          refreshCaptcha({ type });
+          return;
+        }
+      }
+    
+      if (Array.isArray(msg) && msg.some(m => m.includes("captcha"))) {
+        toast.error(`${msg}`);
+        refreshCaptcha({ type });
+        return; 
+      }
+    
+      toast.error(`${msg}`);
+    }
+  });
+
 
   async function getCode() {
     const valid = await trigger(["phone", "captcha"]);
@@ -22,9 +71,9 @@ export function useVerificationCode(type: string) {
     const { phone, captcha } = getValues();
     if (!phone || !captcha) return;
 
-    // Captcha API request
-
+    execSendSmsCode({ phone, captcha, type: type as "register" | "login" });
   }
+
 
   /** Countdown Timer
    * if startedCountDown is false, return
@@ -62,9 +111,11 @@ export function useVerificationCode(type: string) {
         />
         <img
           src={`data:image/svg+xml;base64,${btoa(captchaSrc)}`}
-          onClick={() => { }}
+          onClick={() => {
+            if (!loadingWithGetCaptcha) refreshCaptcha({ type });
+          }}
           alt="captcha"
-          className="w-24 h-12 rounded-md border cursor-pointer"
+          className={`w-24 h-12 rounded-md border cursor-pointer transition-opacity ${loadingWithGetCaptcha ? "opacity-50 pointer-events-none" : ""}`}
         />
       </div>
 
@@ -79,10 +130,14 @@ export function useVerificationCode(type: string) {
         />
         <Button
           variant="outlined"
-          disabled={isDisable}
+          disabled={isDisable || loadingWithSendSmsCode}
           onClick={getCode}
         >
-          {startedCountDown ? `${countDown}s` : "Send Code"}
+          {loadingWithSendSmsCode
+            ? "Sending..."
+            : startedCountDown
+              ? `${countDown}s`
+              : "Send Code"}
         </Button>
       </div>
     </>
@@ -90,6 +145,7 @@ export function useVerificationCode(type: string) {
 
   return {
     verificationCodeTemplate,
+    refreshCaptcha
   }
 }
 

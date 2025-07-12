@@ -1,15 +1,32 @@
 import { TextField, FormControlLabel, Checkbox, Button, Typography } from "@mui/material";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import VerificationCodeForm from "./VerificationCodeForm";
+import { useMutation } from "@tanstack/react-query";
+import { getRegister } from "../../api/user";
+import { useStoreAuth } from "../../hooks";
+import type { RegisterRequest } from "@kflow-struct/share";
+import { useRef } from "react";
+
+type FormData = {
+  phone: string;
+  captcha: string;
+  smsCode: string;
+  password: string;
+  confirmPassword: string;
+  remember: boolean;
+};
 
 export default function RegisterForm() {
-  const methods = useForm({
+  const { login } = useStoreAuth();
+  const refreshCaptchaRef = useRef<((params: { type: string }) => void) | null>(null);
+
+  const methods = useForm<FormData>({
     defaultValues: {
       phone: "",
       captcha: "",
       smsCode: "",
       password: "",
-      confirm: "",
+      confirmPassword: "",
       remember: false,
     },
   });
@@ -23,9 +40,28 @@ export default function RegisterForm() {
 
   const password = useWatch({ control, name: "password" });
 
-  const onSubmit = (data: any) => {
-    console.log("Register", data);
-  };
+  const onSubmit = (values: FormData) => {
+    const payload: RegisterRequest = {
+      phone: values.phone,
+      smsCode: values.smsCode,
+      password: values.password,
+      confirmPassword: values.confirmPassword,
+    };
+    execRegister(payload); // values 会是 RHF 收集的表单数据
+  }
+
+  const { mutate: execRegister, isPending: loadingWithRegister } = useMutation({
+    mutationFn: getRegister,
+    onSuccess: ({ data }) => {
+      login(data)
+    },
+    onError: (err: any) => {
+      console.error("Failed to register", err.response?.data)
+    },
+    onSettled: () => {
+      refreshCaptchaRef.current?.({ type: "register" })
+    }
+  });
 
   return (
     <div className="space-y-4">
@@ -60,12 +96,12 @@ export default function RegisterForm() {
               label="Confirm Password"
               type="password"
               fullWidth
-              {...register("confirm", {
+              {...register("confirmPassword", {
                 required: "Please enter your confirm password!",
                 validate: (value) => value === password || "Confirm password does not match!",
               })}
-              error={!!errors.confirm}
-              helperText={errors.confirm?.message}
+              error={!!errors.confirmPassword}
+              helperText={errors.confirmPassword?.message}
             />
           </div>
 
@@ -95,6 +131,7 @@ export default function RegisterForm() {
           </div>
 
           <Button
+            disabled={loadingWithRegister}
             variant="contained"
             type="submit"
             fullWidth

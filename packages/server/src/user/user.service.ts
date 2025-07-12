@@ -51,7 +51,7 @@ export class UserService {
    * @param code 
    * @returns 
    */
-  async getTextCode(_key: string, type: string, captcha: string, phone: string, code: number) {
+  async getSmsCode(_key: string, type: string, captcha: string, phone: string, code: number) {
     // Text Code cannot be resend within 60s 
     if (await this.redisModule.exists(`${type}:code:${phone}`)) {
       const dateRedis = dayjs(
@@ -99,7 +99,7 @@ export class UserService {
    * @param confirmPassword 
    * @returns 
    */
-  async register(phone: string, textCode: string, password: string, confirmPassword: string) {
+  async register(phone: string, smsCode: string, password: string, confirmPassword: string) {
     // check user exists, phone cannot be registered
     if (await this.userRepository.findOneBy({ phone })) {
       throw new BadRequestException('Phone has been registered!');
@@ -108,10 +108,10 @@ export class UserService {
     // check user passed text code and redis text code are the same
     if (await this.redisModule.get(`register:code:${phone}`)) {
       const codeRes = (await this.redisModule.get(`register:code:${phone}`))!.split('_')[1];
-      if (codeRes !== textCode)
-        throw new BadRequestException('Text code is incorrect!');
+      if (codeRes !== smsCode)
+        throw new BadRequestException('SMS code is incorrect!');
     } else {
-      throw new BadRequestException('Please get text code first!');
+      throw new BadRequestException('Please get SMS code first!');
     }
 
     // check password
@@ -164,21 +164,21 @@ export class UserService {
 
   /** SMS Login
    * @param phone 
-   * @param textCode 
+   * @param smsCode 
    */
-  async smsLogin(phone: string, textCode: string) {
+  async smsLogin(phone: string, smsCode: string) {
     // check user exists
     const user = await this.userRepository.findOneBy({ phone });
     if (!user) throw new BadRequestException('User not found!');
 
     // check text code
     const codeRes = (await this.redisModule.get(`login:code:${phone}`));
-    if (!codeRes) throw new BadRequestException('Please get text code first!');
+    if (!codeRes) throw new BadRequestException('Please get SMS code first!');
 
     // check user passed text code and redis text code are the same
     const code = (await this.redisModule.get(`login:code:${phone}`))!.split('_')[1];
-    if (code !== textCode)
-      throw new BadRequestException('Text code is incorrect!');
+    if (code !== smsCode)
+      throw new BadRequestException('SMS code is incorrect!');
 
     // delete text code
     this.redisModule.del(`login:code:${phone}`);
