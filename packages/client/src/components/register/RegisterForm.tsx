@@ -18,6 +18,8 @@ type FormData = {
 
 export default function RegisterForm() {
   const { login } = useStoreAuth();
+  // prepare a ref to store a function or null. 
+  // This ref will be set to the refreshCaptcha() function in child component VerificationCodeForm, then invoke it in current parent component RegisterForm
   const refreshCaptchaRef = useRef<((params: { type: string }) => void) | null>(null);
 
   const methods = useForm<FormData>({
@@ -47,18 +49,20 @@ export default function RegisterForm() {
       password: values.password,
       confirmPassword: values.confirmPassword,
     };
-    execRegister(payload); // values 会是 RHF 收集的表单数据
+    execRegister(payload); // payload is the data to be sent to the server
   }
 
   const { mutate: execRegister, isPending: loadingWithRegister } = useMutation({
     mutationFn: getRegister,
     onSuccess: ({ data }) => {
-      login(data)
+      login(data) // login after register successfully
     },
     onError: (err: any) => {
       console.error("Failed to register", err.response?.data)
     },
     onSettled: () => {
+      // since the child component VerificationCodeForm has set the refreshCaptcha function to the ref.current
+      // the parent component can invoke it to refresh captcha
       refreshCaptchaRef.current?.({ type: "register" })
     }
   });
@@ -78,7 +82,8 @@ export default function RegisterForm() {
           </div>
 
           {/* verification: captcha + smsCode*/}
-          <VerificationCodeForm type="register" />
+          {/* pass the ref to child component, VerificationCodeForm, so that child component can set a function to it */}
+          <VerificationCodeForm type="register" setRefreshCaptchaRef={refreshCaptchaRef} />
 
           <div>
             <TextField

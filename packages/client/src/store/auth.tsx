@@ -1,11 +1,11 @@
 import { makeAutoObservable } from "mobx";
 
 /**
- * Factory function to create a store
- * @returns observable store instance
+ * Generate a global store instance(only one instance) which include reactive properties: token and details
+ * @returns MobX Reactive Observable Object
  */
 export function createStoreAuth() {
-    // Create an Reactive Observable Object: whenever property value changes, the UI will be re-rendered
+    // makeAutoObservable from mobx, it will make all properties reactive which means when property value changes, the UI will be re-rendered
     return makeAutoObservable(
         { // observable properties
             token: localStorage.getItem("token") ?? "",
