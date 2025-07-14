@@ -6,13 +6,14 @@ import { router } from './router'
 import { SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+// create a global query client instance which can be used in whole app
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <SnackbarProvider maxSnack={3} autoHideDuration={3000}>
-        <RouterProvider router={router} />
+    <QueryClientProvider client={queryClient}> 
+      <SnackbarProvider maxSnack={3} autoHideDuration={3000}> 
+        <RouterProvider router={router} /> 
       </SnackbarProvider>
     </QueryClientProvider>
   </StrictMode>

@@ -2,7 +2,7 @@ import { useTitle } from "react-use";
 import RegisterForm from "./register/RegisterForm";
 
 interface IRegisterProps {
-    changeState: () => void; // click register/login button to switch component
+    changeState: () => void; // no arguments, no return value
 }
 
 export default function Register(props: IRegisterProps) {

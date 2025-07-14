@@ -41,7 +41,7 @@ export function useVerificationCode(type: string) {
   const { mutate: execSendSmsCode, isPending: loadingWithSendSmsCode } = useMutation({
     mutationFn: getSmsCode,
     onSuccess: () => {
-      setStartedCountDown(true);
+      setStartedCountDown(true); // start the countdown timer after sending sms code successfully
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.message;
@@ -98,6 +98,7 @@ export function useVerificationCode(type: string) {
   }, [startedCountDown]);
 
 
+  // return the template of verification code - captcha + smsCode UIs
   const verificationCodeTemplate = (
     <>
       {/* captcha input */}
