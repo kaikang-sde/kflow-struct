@@ -1,4 +1,4 @@
-import type { RegisterRequest, SmsCodeRequest } from "@kflow-struct/share";
+import type { LoginWithCodeRequest, LoginWithPasswordRequest, RegisterRequest, SmsCodeRequest } from "@kflow-struct/share";
 import request from "../utils/request";
 
 
@@ -22,14 +22,34 @@ export async function getSmsCode(data: SmsCodeRequest) {
 }
 
 
-
-
 export async function getRegister(data: RegisterRequest) {
     return request("/user/signup", {
         data,
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-          },
+        },
     });
 }
+
+
+/**
+ * login with password
+ */
+export async function getLoginWithPassword(data: LoginWithPasswordRequest) {
+    return request("/user/login/password", {
+      data,
+      method: "POST",
+    });
+}
+
+/**
+ * sms login
+ */
+export async function getLoginWithCode(data: LoginWithCodeRequest) {
+    return request("/user/login/sms", {
+      data,
+      method: "POST",
+    });
+}
+  

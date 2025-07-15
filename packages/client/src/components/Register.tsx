@@ -12,7 +12,7 @@ export default function Register(props: IRegisterProps) {
         <div className="h-full flex items-center justify-center">
             <div className="w-[368px] rounded-lg shadow-lg bg-white p-6 space-y-2 border-gray-200">
                 <div className="space-y-2 px-12 text-center">
-                    <span className="font-bold cursor-pointer">KFlow Struct</span>
+                    <span className="font-bold cursor-pointer">KFlow Struct Register</span>
                 </div>
 
                 <RegisterForm />
