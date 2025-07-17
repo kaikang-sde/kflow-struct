@@ -13,15 +13,23 @@ export class TextMessageTool {
         this.twilioClient = new Twilio(twilioConfig.accountSid, twilioConfig.authToken);
     }
 
+    normalizePhone(phone: string): string {
+        if (phone.startsWith('+1')) return phone;
+        if (phone.startsWith('1') && phone.length === 11) return `+${phone}`;
+        if (phone.length === 10) return `+1${phone}`;
+        return phone;
+    }
+
     async sendMsgCode(phone: string, code: number): Promise<{ code: number; msg: string }> {
+        const toPhone = this.normalizePhone(phone);
         try {
             const message = await this.twilioClient.messages.create({
                 body: `[KFlowStruct] Your verification code is ${code}. Do not share this code with anyone.`,
                 from: twilioConfig.fromPhone,
-                to: phone,
+                to: toPhone,
             });
 
-            console.log(`Twilio SMS sent: ${message.sid}`);
+            console.log(`Twilio SMS sent to ${toPhone}: ${message.sid}`);
 
             return { code: 0, msg: 'SMS sent successfully' };
         } catch (error: any) {
