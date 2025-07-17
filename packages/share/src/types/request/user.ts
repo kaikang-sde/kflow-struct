@@ -20,4 +20,11 @@ export type SmsCodeRequest =
     CaptchaRequest
 
 
+export type LoginWithPasswordRequest = Pick<IUser, "phone" | "password">
+
+
+export type LoginWithCodeRequest = Pick<IUser, "phone"> & {
+    smsCode: string
+}
+
 

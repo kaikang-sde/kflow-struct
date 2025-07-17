@@ -15,7 +15,7 @@ export default function LoginRegister() {
             {loginOrRegister ? (
                 <Register changeState={changeState}></Register>
             ) : (
-                <Login></Login>
+                <Login changeState={changeState}></Login>
             )}
         </div>
     );
