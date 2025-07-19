@@ -14,8 +14,11 @@ import { WechatDataTool } from 'src/utils/wechat-data-tool';
 
 @Module({
   imports: [
-    WechatLoginToolModule.forRoot(wechatLoginConfig)],
+    WechatLoginToolModule.forRoot(wechatLoginConfig),
+    TypeOrmModule.forFeature([User])
+  ],
   controllers: [UserController],
   providers: [UserService, CaptchaTool, SecretTool, TextMessageTool, RandomTool, WechatDataTool],
+  exports: [UserService, TypeOrmModule],
 })
 export class UserModule {}
