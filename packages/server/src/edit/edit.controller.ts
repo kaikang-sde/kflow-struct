@@ -5,7 +5,7 @@ import { getUserInfo, TCurrentUser } from 'src/common/decorators/user-info.utils
 import { AuthGuard } from '@nestjs/passport';
 
 
-@Controller('edit')
+@Controller('pages')
 export class EditController {
   constructor(private readonly editService: EditService) { }
 
@@ -14,10 +14,20 @@ export class EditController {
    * @param createEditDto 
    * @returns 
    */
-  @Post('publish')
+  @Post()
   @UseGuards(AuthGuard('jwt'))
-  create(@Body() body: PublishRequest, @getUserInfo() user: TCurrentUser) {
-    return this.editService.publish(body, user);
+  createOrPublish(@Body() body: PublishRequest, @getUserInfo() user: TCurrentUser) {
+    return this.editService.createOrPublish(body, user);
   }
+
+  @Get('published')
+  @UseGuards(AuthGuard('jwt'))
+  getPublishedPages(@getUserInfo() user: TCurrentUser) {
+    return this.editService.getPublishedPages(user);
+  }
+
+
+
+
 
 }

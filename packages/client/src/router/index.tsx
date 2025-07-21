@@ -1,7 +1,7 @@
 import { createHashRouter } from "react-router-dom";
 import Home from "../pages";
 import LoginRegister from "../pages/LoginRegister";
-import Edit from "../pages/Edit";
+import PageEditor from "../pages/PageEditor";
 
 
 export const router = createHashRouter(
@@ -15,8 +15,8 @@ export const router = createHashRouter(
                     element: <LoginRegister />
                 },
                 {
-                    path: '/edit',
-                    element: <Edit />
+                    path: '/page-editor',
+                    element: <PageEditor />
                 }
             ]
         }

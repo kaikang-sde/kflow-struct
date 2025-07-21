@@ -1,17 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PublishRequest } from '@kflow-struct/share';
 import { TCurrentUser } from 'src/common/decorators/user-info.utils';
-import { DataSource } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Component, ComponentData, Page } from './entities/edit.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class EditService {
 
   constructor(
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
+    @InjectRepository(Page) private readonly pageRepository: Repository<Page>,
+    @InjectRepository(Component) private readonly componentRepository: Repository<Component>,
   ) { }
 
-  async publish(body: PublishRequest, user: TCurrentUser) {
+  async createOrPublish(body: PublishRequest, user: TCurrentUser) {
     const { components, ...otherBody } = body;
     let pageId: number = -1; // Initialize with a default value
 
@@ -22,11 +25,11 @@ export class EditService {
     const insertComponents = async (targetPageId: number) => {
       const newComponents: string[] = [];
       for (const component of components) {
-        const componentResult = await queryRunner.manager.insert(Component, { 
-          ...component, 
+        const componentResult = await queryRunner.manager.insert(Component, {
+          ...component,
           options: component.options ?? {},
-          page_id: targetPageId, 
-          account_id: user.id 
+          page_id: targetPageId,
+          account_id: user.id
         });
         newComponents.push(componentResult.identifiers[0].id);
       }
@@ -71,7 +74,7 @@ export class EditService {
 
       // 1. query page to check if exists
       const page = await queryRunner.manager.findOne(Page, { where: { account_id: user.id } });
-      
+
       if (!page && !components?.length) {
         throw new Error('No components provided for new page');
       }
@@ -97,11 +100,39 @@ export class EditService {
     if (pageId === -1) {
       throw new Error('Failed to determine page ID after publish operation');
     }
-    
+
     return {
       code: 0,
       msg: 'Publish successfully!',
       data: pageId
     }
+  }
+
+  /**
+   * Get published pages
+   * @param user 
+   * @returns 
+   */
+  async getPublishedPages(user: TCurrentUser) {
+    const page = await this.pageRepository.findOneBy({ account_id: user?.id });
+
+    if (!page) return;
+
+    const components: Component[] = [];
+    const componentIds = page.components;
+
+    for (const componentId of componentIds) {
+      const component = await this.componentRepository.findOneBy({
+        id: Number(componentId),
+      });
+      components.push(component!);
+    }
+
+
+    return {
+      components,
+      componentIds,
+    }
+
   }
 }

@@ -20,7 +20,7 @@ export function useStoreAuth() {
         storeAuth.token = token;
         localStorage.setItem("token", token);
 
-        nav("/edit");
+        nav("/page-editor");
     })
 
     return { isLogin, login };
