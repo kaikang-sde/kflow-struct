@@ -5,6 +5,8 @@ import { UserModule } from './user/user.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { JwtModule } from '@nestjs/jwt';
 import { User } from './user/entities/user.entity';
+import { EditModule } from './edit/edit.module';
+import { JWTStrategy } from './utils/jwt-strategy-tool';
 
 
 @Module({
@@ -13,9 +15,9 @@ import { User } from './user/entities/user.entity';
     RedisModule.forRoot(redisConfig),
     JwtModule.register(jwtConfig),
     UserModule,
-    { ...TypeOrmModule.forFeature([User]), global: true }
+    EditModule
   ],
   controllers: [],
-  providers: [],
+  providers: [JWTStrategy],
 })
 export class AppModule { }
