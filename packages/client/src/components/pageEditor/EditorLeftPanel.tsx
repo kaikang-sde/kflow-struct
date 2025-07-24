@@ -1,82 +1,52 @@
-// src/components/ComponentList.tsx
+import { WidgetsOutlined } from "@mui/icons-material";
+import { Tabs, Tab, Tooltip } from "@mui/material";
+import clsx from "clsx";
+import ComponentsLibrary from "./leftPanel/ComponentsLibrary";
 
-import {
-    OndemandVideo,
-    ViewCarousel,
-    CreditCard,
-    FormatListBulleted,
-    Image as ImageIcon,
-    Title,
-    HorizontalRule,
-    FormatColorText,
-    QrCode,
-    UnfoldMore,
-    Warning,
-    Edit,
-    TextFields,
-    RadioButtonChecked,
-    CheckBox,
-} from "@mui/icons-material";
+export default function EditorLeftPanel() {
 
-import type { FC, ReactNode } from "react";
+    const items = [
+        {
+            key: "components-library",
+            label: (
+                <Tooltip title="Available Components" arrow>
+                    <div className="flex items-center gap-1 text-sm text-gray-600 font-medium px-2">
+                        <WidgetsOutlined fontSize="small" />
+                        <span>Library</span>
+                    </div>
+                </Tooltip>
+            ),
+            component: <ComponentsLibrary />,
+        },
+    ];
 
-// Editor Component Props
-interface ComponentProps {
-    name: string;
-    icon: ReactNode;
-    type: string;
-}
+    const activeTab = "components-library"; // fixed active tab
 
-// Editor Component
-const EditorComponent: FC<ComponentProps> = ({ icon, name }) => {
     return (
-        <div className="border py-2 pl-2 w-full flex items-center gap-1 text-xs cursor-pointer select-none hover:border-blue-500">
-            {icon}
-            <span>{name}</span>
-        </div>
-    );
-};
-
-// Show Components
-const components: ComponentProps[] = [
-    { type: "video", name: "Video", icon: <OndemandVideo fontSize="small" /> },
-    { type: "swiper", name: "Swiper", icon: <ViewCarousel fontSize="small" /> },
-    { type: "card", name: "Card", icon: <CreditCard fontSize="small" /> },
-    { type: "list", name: "List", icon: <FormatListBulleted fontSize="small" /> },
-    { type: "image", name: "Image", icon: <ImageIcon fontSize="small" /> },
-    { type: "titleText", name: "TitleText", icon: <Title fontSize="small" /> },
-    { type: "split", name: "Split", icon: <HorizontalRule fontSize="small" /> },
-    { type: "richText", name: "RichText", icon: <FormatColorText fontSize="small" /> },
-    { type: "qrcode", name: "Qrcode", icon: <QrCode fontSize="small" /> },
-    { type: "empty", name: "Empty", icon: <UnfoldMore fontSize="small" /> },
-    { type: "alert", name: "Alert", icon: <Warning fontSize="small" /> },
-];
-
-// Form Components
-const componentByUserInput: ComponentProps[] = [
-    { type: "input", name: "Input", icon: <Edit fontSize="small" /> },
-    { type: "textArea", name: "TextArea", icon: <TextFields fontSize="small" /> },
-    { type: "radio", name: "Radio", icon: <RadioButtonChecked fontSize="small" /> },
-    { type: "checkbox", name: "Checkbox", icon: <CheckBox fontSize="small" /> },
-];
-
-
-export default function ComponentList() {
-    return (
-        <div>
-            <div className="grid grid-cols-2 items-center gap-2">
-                {components.map((item, index) => (
-                    <EditorComponent {...item} key={index} />
+        <div className="w-full">
+            <Tabs
+                value={activeTab}
+                textColor="primary"
+                indicatorColor="primary"
+                className="border-b border-gray-300"
+            >
+                {items.map((item) => (
+                    <Tab
+                        key={item.key}
+                        value={item.key}
+                        label={item.label}
+                        className={clsx(
+                            "capitalize min-w-0 px-4 py-2",
+                            activeTab === item.key ? "text-blue-600" : "text-gray-500"
+                        )}
+                    />
                 ))}
-            </div>
+            </Tabs>
 
-            <div className="my-4 h-px bg-gray-300" />
+            {/* empty space */}
+            <div className="mt-4" />
 
-            <div className="grid grid-cols-2 items-center gap-2">
-                {componentByUserInput.map((item, index) => (
-                    <EditorComponent {...item} key={index} />
-                ))}
-            </div>
+            {items.find((item) => item.key === activeTab)?.component}
         </div>
     );
 }
